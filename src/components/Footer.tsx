@@ -13,6 +13,7 @@ export default function Footer() {
             Instagram
           </a>
           <Link href="/contact">Contact</Link>
+          <Link href="/privacy">Privacy Policy</Link>
         </div>
 
         <p className="footer-note">Bakersfield, CA — Grill-for-hire &amp; catering</p>

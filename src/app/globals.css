@@ -439,4 +439,24 @@ body {
   .widget-send {
     @apply bg-ember text-bone px-4 py-2 rounded text-sm font-semibold hover:bg-ember-bright transition-colors disabled:opacity-50;
   }
+
+  .privacy-content {
+    @apply max-w-2xl flex flex-col gap-10;
+  }
+
+  .privacy-block {
+    @apply flex flex-col;
+  }
+
+  .privacy-heading {
+    @apply text-2xl mb-0;
+  }
+
+  .widget-disclosure {
+    @apply block text-xs text-smoke mt-2;
+  }
+
+  .widget-disclosure-link {
+    @apply underline;
+  }
 }
