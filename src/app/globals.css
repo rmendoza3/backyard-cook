@@ -460,31 +460,27 @@ body {
     @apply underline;
   }
 
-  .widget-draft-form {
-    @apply flex flex-col gap-2.5 border border-line rounded-lg p-3.5 bg-char mt-1;
+  .widget-draft-title {
+    @apply text-xs font-semibold uppercase tracking-wide text-ember-bright;
+  }
+
+  .widget-draft-summary {
+    @apply flex flex-col gap-1.5 border border-line rounded-lg p-3.5 bg-char mt-1;
   }
 
   .widget-draft-title {
     @apply text-xs font-semibold uppercase tracking-wide text-ember-bright;
   }
 
-  .widget-draft-field {
-    @apply flex flex-col gap-1 text-xs text-bone-dim;
+  .widget-draft-text {
+    @apply text-sm text-bone;
   }
 
-  .widget-draft-input {
-    @apply bg-char-soft border border-line rounded px-2.5 py-1.5 text-sm text-bone;
+  .widget-draft-meta {
+    @apply text-xs text-bone-dim;
   }
 
-  .widget-draft-submit {
-    @apply bg-ember text-bone rounded px-3 py-2 text-sm font-semibold hover:bg-ember-bright disabled:opacity-50;
-  }
-
-  .widget-draft-success {
-    @apply text-xs text-pellet-bright;
-  }
-
-  .widget-draft-error {
-    @apply text-xs text-ember-bright;
+  .widget-draft-link {
+    @apply text-sm text-ember-bright underline mt-1;
   }
 }

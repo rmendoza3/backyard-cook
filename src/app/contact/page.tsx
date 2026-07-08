@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function Contact() {
+function ContactForm() {
+  const searchParams = useSearchParams();
   const [status, setStatus] = useState<"idle" | "loading" | "submitted" | "error">("idle");
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("loading");
 
@@ -13,22 +15,70 @@ export default function Contact() {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
 
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) throw new Error("Request failed");
-
-      setStatus("submitted");
-      form.reset();
-    } catch {
-      setStatus("error");
-    }
+    fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error();
+        setStatus("submitted");
+        form.reset();
+      })
+      .catch(() => setStatus("error"));
   }
 
+  return (
+    <form onSubmit={handleSubmit} className="contact-form">
+      <label className="field">
+        <span className="field-label">Name</span>
+        <input type="text" name="name" required defaultValue={searchParams.get("name") || ""} className="field-input" />
+      </label>
+
+      <label className="field">
+        <span className="field-label">Email</span>
+        <input type="email" name="email" required defaultValue={searchParams.get("email") || ""} className="field-input" />
+      </label>
+
+      <div className="field-row">
+        <label className="field">
+          <span className="field-label">Pickup or delivery date</span>
+          <input type="date" name="event_date" defaultValue={searchParams.get("event_date") || ""} className="field-input" />
+        </label>
+        <label className="field">
+          <span className="field-label">Headcount</span>
+          <input type="number" name="headcount" min="1" defaultValue={searchParams.get("headcount") || ""} className="field-input" />
+        </label>
+      </div>
+
+      <label className="field">
+        <span className="field-label">Pickup or delivery?</span>
+        <select name="fulfillment" defaultValue={searchParams.get("fulfillment") || "pickup"} className="field-input">
+          <option value="pickup">Pickup</option>
+          <option value="delivery">Delivery (extra cost)</option>
+        </select>
+      </label>
+
+      <label className="field">
+        <span className="field-label">What are you picturing?</span>
+        <textarea name="message" rows={5} defaultValue={searchParams.get("message") || ""} className="field-input" />
+      </label>
+
+      <button type="submit" className="btn-primary contact-submit">Send Inquiry</button>
+
+      {status === "submitted" && (
+        <p className="contact-status">Thanks — we'll get back to you within a day or two.</p>
+      )}
+      {status === "error" && (
+        <p className="contact-status contact-status-error">
+          Something went wrong. Try again, or reach out on Instagram instead.
+        </p>
+      )}
+    </form>
+  );
+}
+
+export default function Contact() {
   return (
     <main>
       <section className="menu-hero">
@@ -42,69 +92,16 @@ export default function Contact() {
 
       <section className="section">
         <div className="section-inner contact-grid">
-          <form onSubmit={handleSubmit} className="contact-form">
-            <label className="field">
-              <span className="field-label">Name</span>
-              <input type="text" name="name" required className="field-input" />
-            </label>
-
-            <label className="field">
-              <span className="field-label">Email</span>
-              <input type="email" name="email" required className="field-input" />
-            </label>
-
-            <div className="field-row">
-              <label className="field">
-                <span className="field-label">Pickup or delivery date</span>
-                <input type="date" name="event_date" className="field-input" />
-              </label>
-              <label className="field">
-                <span className="field-label">Headcount</span>
-                <input type="number" name="headcount" min="1" className="field-input" />
-              </label>
-            </div>
-
-            <label className="field">
-              <span className="field-label">Pickup or delivery?</span>
-              <select name="fulfillment" className="field-input">
-                <option value="pickup">Pickup</option>
-                <option value="delivery">Delivery (extra cost)</option>
-              </select>
-            </label>
-
-            <label className="field">
-              <span className="field-label">What are you picturing?</span>
-              <textarea name="message" rows={5} className="field-input" />
-            </label>
-
-            <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" />
-
-            <button type="submit" className="btn-primary contact-submit" disabled={status === "loading"}>
-              {status === "loading" ? "Sending..." : "Send Inquiry"}
-            </button>
-
-            {status === "submitted" && (
-              <p className="contact-status">Thanks — we'll get back to you within a day or two.</p>
-            )}
-
-            {status === "error" && (
-              <p className="contact-status contact-status-error">
-                Something went wrong. Try again, or reach out on Instagram instead.
-              </p>
-            )}
-          </form>
+          <Suspense fallback={<p className="why-us-copy">Loading form...</p>}>
+            <ContactForm />
+          </Suspense>
 
           <div className="contact-side">
             <div className="contact-card">
               <p className="eyebrow">Prefer Instagram?</p>
               <p className="contact-card-copy">
                 DMs are checked daily —{" "}
-                <a
-                  href="https://instagram.com/backyard.cook"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="menu-link"
-                >
+                <a href="https://instagram.com/backyard.cook" target="_blank" rel="noopener noreferrer" className="menu-link">
                   @backyard.cook
                 </a>
               </p>
