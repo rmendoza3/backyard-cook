@@ -119,6 +119,10 @@ export default function Home() {
         <h2 className="section-heading">Got an order in mind? Let&apos;s get you on the smoker's schedule.</h2>
         <Link href="/contact" className="btn-primary">Order Now</Link>
       </section>
+
+      <p style={{ position: "fixed", bottom: 0, left: 0, background: "black", color: "white", padding: "4px", fontSize: "10px", zIndex: 9999 }}>
+        DEBUG: {process.env.NEXT_PUBLIC_BOT_API_URL || "FALLBACK IS ACTIVE"}
+      </p>
     </main>
   );
 }
