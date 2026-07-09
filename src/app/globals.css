@@ -393,7 +393,7 @@ body {
   }
 
   .widget-panel {
-    @apply w-80 sm:w-96 h-112char-soft border border-line rounded-lg shadow-xl flex flex-col overflow-hidden;
+    @apply w-80 sm:w-96 h-112 bg-char-soft border border-line rounded-lg shadow-xl flex flex-col overflow-hidden;
   }
 
   .widget-header {
