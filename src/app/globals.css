@@ -393,7 +393,7 @@ body {
   }
 
   .widget-panel {
-    @apply w-80 sm:w-96 h-[28rem] bg-char-soft border border-line rounded-lg shadow-xl flex flex-col overflow-hidden;
+    @apply w-80 sm:w-96 h-112char-soft border border-line rounded-lg shadow-xl flex flex-col overflow-hidden;
   }
 
   .widget-header {
@@ -481,8 +481,8 @@ body {
   }
 
   .widget-panel {
-    @apply w-80 sm:w-96 h-[28rem] bg-char-soft border border-line rounded-lg shadow-xl flex flex-col overflow-hidden;
-    @apply fixed inset-0 w-full h-full rounded-none sm:static sm:inset-auto sm:w-96 sm:h-[28rem] sm:rounded-lg;
+    @apply w-80 sm:w-96 h-112 bg-char-soft border border-line rounded-lg shadow-xl flex flex-col overflow-hidden;
+    @apply fixed inset-0 w-full h-full rounded-none sm:static sm:inset-auto sm:w-96 sm:h-112 sm:rounded-lg;
   }
 
   .widget-header {
@@ -510,7 +510,8 @@ body {
   }
 
   .widget-row {
-    @apply flex items-end gap-2 animate-widget-in;
+    @apply flex items-end gap-2;
+    animation: widget-fade-in-up 0.25s ease-out;
   }
 
   .widget-row-user {
@@ -522,7 +523,7 @@ body {
   }
 
   .widget-avatar {
-    @apply w-6 h-6 rounded-full object-cover flex-shrink-0 mb-0.5;
+    @apply w-6 h-6 rounded-full object-cover shrink-0 mb-0.5;
   }
 
   .widget-bubble {
@@ -586,7 +587,8 @@ body {
   }
 
   .widget-draft-summary {
-    @apply flex flex-col gap-1.5 border border-line rounded-lg p-3.5 bg-char mt-1 animate-widget-in;
+    @apply flex flex-col gap-1.5 border border-line rounded-lg p-3.5 bg-char mt-1;
+    animation: widget-fade-in-up 0.25s ease-out;
   }
 
   .widget-draft-title {
