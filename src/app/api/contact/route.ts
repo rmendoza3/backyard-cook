@@ -1,10 +1,21 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { z } from "zod";
 
+const EMAIL_PROVIDER = process.env.EMAIL_PROVIDER ?? "gmail";
+
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const gmailTransport = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+    },
+});
 
 const ratelimit = new Ratelimit({
     redis: Redis.fromEnv(),
@@ -59,12 +70,7 @@ export async function POST(request: Request) {
             );
         }
 
-        await resend.emails.send({
-            from: "Backyard Cook Website <onboarding@resend.dev>",
-            to: "bakersfieldbackyardcook@gmail.com",
-            replyTo: email,
-            subject: `New inquiry from ${name}`,
-            text: `
+        const emailText = `
 Name: ${name}
 Email: ${email}
 Date requested: ${event_date || "Not specified"}
@@ -73,8 +79,25 @@ Pickup or delivery: ${fulfillment || "Not specified"}
 
 Message:
 ${message || "No message provided"}
-      `.trim(),
-        });
+      `.trim();
+
+        if (EMAIL_PROVIDER === "gmail") {
+            await gmailTransport.sendMail({
+                from: `Backyard Cook Website <${process.env.GMAIL_USER}>`,
+                to: "bakersfieldbackyardcook@gmail.com",
+                replyTo: email,
+                subject: `New inquiry from ${name}`,
+                text: emailText,
+            });
+        } else {
+            await resend.emails.send({
+                from: "Backyard Cook Website <onboarding@resend.dev>",
+                to: "bakersfieldbackyardcook@gmail.com",
+                replyTo: email,
+                subject: `New inquiry from ${name}`,
+                text: emailText,
+            });
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

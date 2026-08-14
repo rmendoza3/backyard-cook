@@ -14,7 +14,18 @@ type InquiryDraft = {
   message?: string;
 };
 
+type PersistedState = {
+  isOpen: boolean;
+  messages: Message[];
+  sessionId: string | null;
+  draft: InquiryDraft | null;
+  lastActive: number;
+};
+
 const BOT_API_URL = process.env.NEXT_PUBLIC_BOT_API_URL || "http://localhost:3001/api/chat";
+const STORAGE_KEY = "backyard-cook-chat-state";
+const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const AUTO_OPEN_DELAY_MS = 5000; // 5 seconds
 
 const GREETING: Message = {
   role: "model",
@@ -34,7 +45,8 @@ function buildContactUrl(draft: InquiryDraft) {
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
-  const [hasOpenedOnce, setHasOpenedOnce] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [hasRestored, setHasRestored] = useState(false);
   const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -44,10 +56,62 @@ export default function ChatWidget() {
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Restore from sessionStorage on first mount, or start the auto-open timer if nothing to restore.
+  useEffect(() => {
+    const stored = sessionStorage.getItem(STORAGE_KEY);
+
+    if (stored) {
+      try {
+        const parsed: PersistedState = JSON.parse(stored);
+        const isFresh = Date.now() - parsed.lastActive < SESSION_TTL_MS;
+
+        if (isFresh) {
+          setIsOpen(parsed.isOpen);
+          setMessages(parsed.messages.length ? parsed.messages : [GREETING]);
+          setSessionId(parsed.sessionId);
+          setDraft(parsed.draft);
+          setHasInteracted(true); // don't auto-open if we're restoring a real prior state
+          setHasRestored(true);
+          return;
+        }
+      } catch {
+        // fall through to fresh state below
+      }
+    }
+
+    setHasRestored(true);
+
+    const timer = setTimeout(() => {
+      setIsOpen((current) => {
+        // Only auto-open if the user hasn't already manually toggled it in the meantime.
+        return current;
+      });
+      setHasInteracted((interacted) => {
+        if (!interacted) setIsOpen(true);
+        return interacted;
+      });
+    }, AUTO_OPEN_DELAY_MS);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Persist state on every meaningful change, once initial restore has happened.
+  useEffect(() => {
+    if (!hasRestored) return;
+
+    const toSave: PersistedState = {
+      isOpen,
+      messages,
+      sessionId,
+      draft,
+      lastActive: Date.now(),
+    };
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  }, [isOpen, messages, sessionId, draft, hasRestored]);
+
   useEffect(() => {
     if (isOpen) {
       inputRef.current?.focus();
-      setHasOpenedOnce(true);
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -60,6 +124,11 @@ export default function ChatWidget() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading, draft]);
+
+  function toggleOpen() {
+    setHasInteracted(true);
+    setIsOpen((prev) => !prev);
+  }
 
   async function sendMessage(e: React.FormEvent) {
     e.preventDefault();
@@ -106,7 +175,7 @@ export default function ChatWidget() {
               <Image src="/images/BackyardCookLogo.png" alt="" width={32} height={32} className="widget-header-avatar" />
               <p className="widget-title">Ask Backyard Cook</p>
             </div>
-            <button onClick={() => setIsOpen(false)} className="widget-close" aria-label="Close chat">✕</button>
+            <button onClick={toggleOpen} className="widget-close" aria-label="Close chat">✕</button>
           </div>
 
           <div className="widget-messages">
@@ -165,8 +234,8 @@ export default function ChatWidget() {
       )}
 
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={isOpen ? "widget-toggle" : hasOpenedOnce ? "widget-toggle" : "widget-toggle widget-toggle-pulse"}
+        onClick={toggleOpen}
+        className={isOpen || hasInteracted ? "widget-toggle" : "widget-toggle widget-toggle-pulse"}
         aria-label="Toggle chat"
       >
         {isOpen ? (
